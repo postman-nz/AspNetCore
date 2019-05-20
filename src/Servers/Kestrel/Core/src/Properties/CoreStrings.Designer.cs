@@ -2254,6 +2254,20 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core
         internal static string FormatStartAsyncBeforeGetMemory()
             => GetString("StartAsyncBeforeGetMemory");
 
+        /// <summary>
+        /// The request trailers are not available yet. They may not be available until the full request body is read.
+        /// </summary>
+        internal static string RequestTrailersNotAvailable
+        {
+            get => GetString("RequestTrailersNotAvailable");
+        }
+
+        /// <summary>
+        /// The request trailers are not available yet. They may not be available until the full request body is read.
+        /// </summary>
+        internal static string FormatRequestTrailersNotAvailable()
+            => GetString("RequestTrailersNotAvailable");
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

@@ -205,7 +205,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http
         }
 
         public IHeaderDictionary RequestHeaders { get; set; }
-        public IHeaderDictionary RequestTrailers { get; set; }
+        public IHeaderDictionary RequestTrailers { get; } = new HeaderDictionary();
+        public bool RequestTrailersAvailable { get; set; }
         public Stream RequestBody { get; set; }
         public PipeReader RequestBodyPipeReader { get; set; }
 
@@ -368,7 +369,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http
             HttpResponseHeaders.Reset();
             RequestHeaders = HttpRequestHeaders;
             ResponseHeaders = HttpResponseHeaders;
-            RequestTrailers = null;
+            RequestTrailers.Clear();
+            RequestTrailersAvailable = false;
 
             _isLeasedMemoryInvalid = true;
             _hasAdvanced = false;
@@ -533,14 +535,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http
                 BadHttpRequestException.Throw(RequestRejectionReason.TooManyHeaders);
             }
 
-            // TODO: Should we worry about not setting this until we've parsed all of the trailers?
-            // Or just assume this is only happening during a request body read?
-            // That might not be the case for HTTP/2, we'd need a temp collection.
-            if (RequestTrailers == null)
-            {
-                RequestTrailers = new HeaderDictionary();
-            }
-
             string key = name.GetHeaderName();
             var valueStr = value.GetAsciiOrUTF8StringNonNullCharacters();
             RequestTrailers.Append(key, valueStr);
@@ -553,12 +547,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http
 
         public void OnTrailersComplete()
         {
-            // TODO: Move temp headers collection to RequestTrailers;
-            // Otherwise mark as complete by assigning an empty collection.
-            if (RequestTrailers == null)
-            {
-                RequestTrailers = new HeaderDictionary();
-            }
+            RequestTrailersAvailable = true;
         }
 
         public void EnableRequestTrailersFeature()
